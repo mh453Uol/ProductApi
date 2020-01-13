@@ -27,4 +27,28 @@ You can view the documentation for the api by navigating to `https://localhost:5
     ```
     and populating the model by creating `SqliteUtil.ExecuteReader` and `SqliteUtil.NonQuery`.
 
+    `SqliteUtil.ExecuteReader` takes in a function which does the mapping/getting fields from a SqliteDataReader to a Model T. The function always returns a collection however if you query for 1 record i.e `SELECT * FROM PRODUCT WHERE ID = 1` you can check the count of the list is 1.
+
+    ```c#
+    private static List<T> ExecuteReader<T>(Func<SqliteDataReader, T> mapToModelFn, string query, SqliteParameter[] parameters)
+    {
+        var results = new List<T>();
+            
+        using (SqliteConnection connection = NewConnection())
+        {
+            connection.Open();
+
+            var command = connection.CreateCommand();
+            command.CommandText = query;
+            command.Parameters.AddRange(parameters);
+            var reader = command.ExecuteReader();
+
+            while(reader.Read()) {
+                results.Add(mapToModelFn(reader));
+            }
+        }
+        return results;
+    }
+    ```
+
 3. Global error handling and logging to disk `C:\temp\nlog-*-*.log`) using NLog
